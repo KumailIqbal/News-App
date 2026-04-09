@@ -8,37 +8,46 @@ on:
 
 jobs:
 
-  # 🔹 Job 1: Runs only on PR
   hello-on-pr:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
 
     steps:
-      - name: Print Hello World
-        run: echo "Hello World"
+      - run: echo "Hello World"
 
-  # 🔹 Job 2: Runs only on Push
   android-build:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout code
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 2: Setup Java (required for Android build)
-      - name: Set up JDK 11
+      - name: Set up JDK
         uses: actions/setup-java@v4
         with:
           java-version: '11'
           distribution: 'temurin'
           cache: gradle
 
-      # Step 3: Give permission to gradlew
-      - name: Grant execute permission
+      - name: Grant permission
         run: chmod +x gradlew
 
-      # Step 4: Build project
-      - name: Build with Gradle
-        run: ./gradlew build
+      # ✅ Lint
+      - name: Run Lint
+        run: ./gradlew lint
+
+      # ✅ Tests
+      - name: Run Unit Tests
+        run: ./gradlew test
+
+      # ✅ Build APK
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug
+
+      # ✅ Upload APK
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
