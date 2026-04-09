@@ -24,15 +24,11 @@ import com.example.newsapp.utils.Constants.NEWS_TITLE
 import com.example.newsapp.utils.Constants.NEWS_URL
 import com.example.newsapp.utils.Constants.TOP_HEADLINES_COUNT
 import com.example.newsapp.utils.Constants.INITIAL_POSITION
-import com.jama.carouselview.CarouselView
-import com.jama.carouselview.enums.IndicatorAnimationType
-import com.jama.carouselview.enums.OffsetType
 import com.squareup.picasso.Picasso
 
 class GeneralFragment : Fragment() {
 
     private lateinit var recyclerView: RecyclerView
-    private lateinit var carouselView: CarouselView
     private lateinit var adapter: CustomAdapter
     private lateinit var newsDataForTopHeadlines: List<NewsModel>
     private lateinit var newsDataForDown: List<NewsModel>
@@ -54,46 +50,6 @@ class GeneralFragment : Fragment() {
         adapter = CustomAdapter(newsDataForDown)
         recyclerView.adapter = adapter
 
-
-        carouselView = view.findViewById<CarouselView>(R.id.home_carousel)
-
-        carouselView.apply {
-            size = newsDataForTopHeadlines.size
-            autoPlay = true
-            indicatorAnimationType = IndicatorAnimationType.THIN_WORM
-            carouselOffset = OffsetType.CENTER
-            setCarouselViewListener { view, position ->
-                val imageView = view.findViewById<ImageView>(R.id.img)
-                Picasso.get()
-                    .load(newsDataForTopHeadlines[position].image)
-                    .fit()
-                    .centerCrop()
-                    .error(R.drawable.samplenews)
-                    .into(imageView)
-
-
-                val newsTitle = view.findViewById<TextView>(R.id.headline)
-                newsTitle.text = newsDataForTopHeadlines[position].headLine
-
-                view.setOnClickListener {
-
-                    val intent = Intent(context, ReadNewsActivity::class.java).apply {
-                        putExtra(NEWS_URL, newsDataForTopHeadlines[position].url)
-                        putExtra(NEWS_TITLE, newsDataForTopHeadlines[position].headLine)
-                        putExtra(NEWS_IMAGE_URL, newsDataForTopHeadlines[position].image)
-                        putExtra(NEWS_DESCRIPTION, newsDataForTopHeadlines[position].description)
-                        putExtra(NEWS_SOURCE, newsDataForTopHeadlines[position].source)
-                        putExtra(NEWS_PUBLICATION_TIME, newsDataForTopHeadlines[position].time)
-                        putExtra(NEWS_CONTENT, newsDataForTopHeadlines[position].content)
-                    }
-
-                    startActivity(intent)
-
-                }
-            }
-            // After you finish setting up, show the CarouselView
-            show()
-        }
 
         // listitem onClick
         adapter.setOnItemClickListener(object : CustomAdapter.OnItemClickListener {
