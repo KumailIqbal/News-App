@@ -2,12 +2,13 @@ name: Android CI Pipeline
 
 on:
   pull_request:
-    branches: [ "main", "master" ]
+    branches: [ "main", "master", "staging" ]
   push:
-    branches: [ "main", "master" ]
+    branches: [ "main", "master", "staging" ]
 
 jobs:
 
+  # ✅ PR Job
   hello-on-pr:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
@@ -15,8 +16,9 @@ jobs:
     steps:
       - run: echo "Hello World"
 
-  android-build:
-    if: github.event_name == 'push'
+  # ✅ DEV BUILD (Debug APK)
+  android-build-dev:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
     steps:
@@ -41,21 +43,75 @@ jobs:
       - name: Run Unit Tests
         run: ./gradlew test
 
-      # ✅ Build APK
+      # ✅ Debug APK
       - name: Build Debug APK
         run: ./gradlew assembleDebug
 
-      # ✅ Upload APK
+      # ✅ Upload Artifact
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: app-debug-apk
           path: app/build/outputs/apk/debug/*.apk
 
+      # 🔥 Firebase (Dev)
       - name: Upload to Firebase
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
-            appId: 1:255866207729:android:d796000373177b3de4d850
-            token: ${{ secrets.FIREBASE_TOKEN }}
-            groups: staging-testers
-            file: app/build/outputs/apk/debug/app-debug.apk
+          appId: 1:255866207729:android:d796000373177b3de4d850
+          token: ${{ secrets.FIREBASE_TOKEN }}
+          groups: testers
+          file: app/build/outputs/apk/debug/app-debug.apk
+
+
+  # ✅ STAGING BUILD (Signed APK)
+  android-build-staging:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Grant permission
+        run: chmod +x gradlew
+
+      # 🔐 Decode Keystore
+      - name: Decode Keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_FILE }}" | base64 --decode > keystore.jks
+
+      # ✅ Lint
+      - name: Run Lint
+        run: ./gradlew lint
+
+      # ✅ Tests
+      - name: Run Unit Tests
+        run: ./gradlew test
+
+      # ✅ Signed APK (Staging)
+      - name: Build Staging APK
+        run: ./gradlew assembleStaging
+
+      # ✅ Upload Artifact
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-staging-apk
+          path: app/build/outputs/apk/staging/*.apk
+
+      # 🔥 Firebase (Staging)
+      - name: Upload to Firebase
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: 1:255866207729:android:d796000373177b3de4d850
+          token: ${{ secrets.FIREBASE_TOKEN }}
+          groups: staging-testers
+          file: app/build/outputs/apk/staging/app-staging.apk
