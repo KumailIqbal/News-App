@@ -2,9 +2,9 @@ name: Android CI Pipeline
 
 on:
   pull_request:
-    branches: [ "main", "master", "staging" ]
+    branches: [ "master", "staging" ]
   push:
-    branches: [ "main", "master", "staging" ]
+    branches: [ "master", "staging" ]
 
 jobs:
 
@@ -18,7 +18,7 @@ jobs:
 
   # ✅ DEV BUILD (Debug APK)
   android-build-dev:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
 
     steps:
